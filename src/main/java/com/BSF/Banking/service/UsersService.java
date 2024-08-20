@@ -1,7 +1,5 @@
-package com.example.demo.service;
-import com.example.demo.model.ActivateBeneficiary;
-import com.example.demo.model.BSFAccountResponse;
-import com.example.demo.model.CreateBSFBen;
+package com.BSF.Banking.service;
+import com.BSF.Banking.model.*;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -24,7 +22,10 @@ public class UsersService {
     private String beneficiaryName;
     private String accountNumber;
     private String beneficiarySequence;
-
+    private String BenSequence2;
+//    private String actionURL;
+    private ActivateBeneficiary beneficiary;
+//    private IVRactivateBen ivractivateBen;
     //This method will be called when the user enter his username and password
     public ResponseEntity<?> login(Map<String, String> credentials){
         String username = credentials.get("username");
@@ -282,7 +283,7 @@ public class UsersService {
         return null;
     }
 
-    public CreateBSFBen create_BSF_Beneficiary() {
+    public Object create_BSF_Beneficiary() {
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
@@ -303,20 +304,20 @@ public class UsersService {
             );
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            return "Beneficiary already exists";
         }
         if (response.getStatusCode() == HttpStatus.OK) {
             beneficiarySequence = response.getBody().getBeneficiarySequence();
             return response.getBody();
         }
-        return null;
+        return "Beneficiary already exists";
     }
 
     public ActivateBeneficiary bsfactivateBeneficiary() {
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+//        headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(accessToken);
 
         HttpEntity<String> request = new HttpEntity<>(headers);
@@ -336,6 +337,12 @@ public class UsersService {
             return null;
         }
         if (response.getStatusCode() == HttpStatus.OK) {
+            beneficiary = response.getBody();  // Get the body of the response
+            if (beneficiary != null) {
+                //String actionURL = beneficiary.getActionURL();  // Retrieve actionURL from the body
+                //System.out.println("Action URL: " + actionURL);
+                System.out.println("Beneficiary Action URL: " + beneficiary.getActionURL());
+            }
             return response.getBody();
         }
         return null;
@@ -343,7 +350,7 @@ public class UsersService {
 
 
     public String deleteBeneficiary(Map<String, String> BenSequence) {
-        String BenSequence2 = BenSequence.get("BenfSequence");
+        BenSequence2 = BenSequence.get("beneficiarySequence");
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
@@ -369,10 +376,50 @@ public class UsersService {
         if (response.getStatusCode() == HttpStatus.OK) {
             return "User deleted successfully";
         }
+        return "User deleted successfully";
+    }
+
+
+    public Object ivrActivateBeneficiary() {
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(accessToken);
+
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        String url = String.format("https://identity.u.omni-fm.alfransi.com.sa%s", beneficiary.getActionURL());
+        System.out.println(url);
+        ResponseEntity<Object> response;
+        try {
+            response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    request,
+                    Object.class
+            );
+        } catch (Exception e) {
+            String Response = e.getMessage().toString();
+            String Response2 = Response.substring(Response.indexOf(": \"") + 3, Response.lastIndexOf("\""));
+            // Find the starting point of actionUrl
+            String actionUrlKey = "\"actionUrl\":\"";
+            int actionUrlStartIndex = Response2.indexOf(actionUrlKey) + actionUrlKey.length();
+
+            // Find the ending point of actionUrl
+            int actionUrlEndIndex = Response2.indexOf("\"", actionUrlStartIndex);
+
+            // Extract the actionUrl
+            String actionUrl = Response2.substring(actionUrlStartIndex, actionUrlEndIndex);
+
+            // Print or store the actionUrl in a variable
+            System.out.println("Action URL: " + actionUrl);
+            return actionUrl;
+        }
         return null;
     }
 
-    
 
 
 

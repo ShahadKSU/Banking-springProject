@@ -1,8 +1,9 @@
-package com.example.demo.controller;
-import com.example.demo.model.ActivateBeneficiary;
-import com.example.demo.model.BSFAccountResponse;
-import com.example.demo.model.CreateBSFBen;
-import com.example.demo.service.UsersService;
+package com.BSF.Banking.controller;
+import com.BSF.Banking.model.ChallengeResponse;
+import com.BSF.Banking.service.UsersService;
+import com.BSF.Banking.model.ActivateBeneficiary;
+import com.BSF.Banking.model.BSFAccountResponse;
+import com.BSF.Banking.model.IVRactivateBen;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -51,7 +52,7 @@ public class UserController {
     }
 
     @PostMapping("/createBSFBeneficiary")
-    public CreateBSFBen createBSFBeneficiary(){
+    public Object createBSFBeneficiary(){
         return service.create_BSF_Beneficiary();
     }
 
@@ -66,6 +67,11 @@ public class UserController {
         return service.deleteBeneficiary(BenfSequence);
     }
 
+    @GetMapping("/IVRActivateBen")
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public Object IVRActivateBeneficiary(){
+        return service.ivrActivateBeneficiary();
+    }
 
 
 }
